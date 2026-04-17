@@ -13,11 +13,10 @@ def create_app():
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-key-change-in-production')
     app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///sendme.db')
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-    app.config['SESSION_COOKIE_SECURE'] = True
-    app.config['SESSION_COOKIE_HTTPONLY'] = True
     
     db.init_app(app)
     
+    # Import and register blueprints
     from app.routes import main, tasks, auth
     app.register_blueprint(main.bp)
     app.register_blueprint(tasks.bp)
