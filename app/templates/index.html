@@ -1,0 +1,489 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="glass-bg"></div>
+
+<nav class="premium-nav">
+    <div class="nav-container">
+        <div class="logo" id="logoBtn">
+            <img src="{{ url_for('static', filename='uploads/SendMe_logo.png') }}" alt="SendMe" class="logo-image">
+            <span class="logo-text">SendMe</span>
+        </div>
+        <div class="nav-actions">
+            <button class="notifications-btn" id="notificationsBtn">
+                <i class="fas fa-bell"></i>
+                <span class="notification-badge" id="notificationBadge" style="display: none;">0</span>
+            </button>
+            <button class="post-task-btn" id="openPostModal">
+                <i class="fas fa-plus"></i>
+                <span>Post Task</span>
+            </button>
+        </div>
+    </div>
+</nav>
+
+<div class="bottom-nav">
+    <button class="bottom-nav-item active" data-nav="feed">
+        <i class="fas fa-home"></i>
+        <span>Feed</span>
+    </button>
+    <button class="bottom-nav-item" data-nav="my-tasks">
+        <i class="fas fa-tasks"></i>
+        <span>My Tasks</span>
+    </button>
+    <button class="bottom-nav-item" data-nav="profile">
+        <i class="fas fa-user"></i>
+        <span>Profile</span>
+    </button>
+</div>
+
+<div class="main-content">
+    <!-- Feed View -->
+    <div id="feedView" class="view active">
+        <section class="hero-section">
+            <div class="hero-content">
+                <h1 class="hero-title">
+                    Get things done
+                    <span class="gradient-text">instantly</span>
+                </h1>
+                <p class="hero-subtitle">Post a task, find help nearby. Simple, fast, reliable.</p>
+            </div>
+        </section>
+
+        <div class="search-section">
+            <div class="search-container">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" id="searchInput" placeholder="Search tasks..." class="search-input">
+            </div>
+            
+            <div class="filter-chips" id="filterChips">
+                <button class="chip active" data-filter="all">All Tasks</button>
+                <button class="chip" data-filter="urgent"><i class="fas fa-bolt"></i> Urgent</button>
+                <button class="chip" data-filter="high_pay"><i class="fas fa-trophy"></i> High Pay</button>
+                <button class="chip" data-filter="nearby" id="nearbyFilterBtn"><i class="fas fa-location-dot"></i> Nearby</button>
+            </div>
+            
+            <div class="task-type-filters" style="margin-top: 0.75rem;">
+                <button class="type-chip active" data-type="all">All</button>
+                <button class="type-chip" data-type="help_me"><i class="fas fa-hand-paper"></i> Help Me</button>
+                <button class="type-chip" data-type="send_me"><i class="fas fa-car"></i> Send Me</button>
+                <button class="type-chip" data-type="deliver"><i class="fas fa-box"></i> Deliver</button>
+                <button class="type-chip" data-type="group_buy"><i class="fas fa-users"></i> Group Buy</button>
+            </div>
+        </div>
+
+        <div class="tasks-container">
+            <div class="tasks-header">
+                <h2>Available Tasks</h2>
+                <span class="tasks-count" id="tasksCount">0 tasks</span>
+            </div>
+            <div class="tasks-grid" id="tasksGrid">
+                <div class="loading-skeleton">
+                    <div class="skeleton-card"></div>
+                    <div class="skeleton-card"></div>
+                    <div class="skeleton-card"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- My Tasks View -->
+    <div id="myTasksView" class="view">
+        <div class="my-tasks-header">
+            <h2>My Tasks</h2>
+        </div>
+        <div class="tasks-tabs">
+            <button class="tasks-tab active" data-tab="posted">Posted</button>
+            <button class="tasks-tab" data-tab="accepted">Applied</button>
+            <button class="tasks-tab" data-tab="candidates">Candidates</button>
+        </div>
+        <div id="postedTasks" class="my-tasks-list"></div>
+        <div id="acceptedTasks" class="my-tasks-list" style="display: none;"></div>
+        <div id="candidatesTasks" class="my-tasks-list" style="display: none;"></div>
+    </div>
+
+    <!-- Profile View - COMPLETELY FIXED -->
+    <div id="profileView" class="view">
+        <div class="profile-header">
+            <div class="profile-avatar">
+                <img src="{{ url_for('static', filename='uploads/SendMe_logo.png') }}" alt="Profile">
+            </div>
+            <div class="profile-name-section">
+                <input type="text" id="profileNameInput" class="profile-name-input" placeholder="Enter your name" value="Guest User">
+                <button id="saveNameBtn" class="save-name-btn">Save</button>
+            </div>
+            <div class="verification-badge" id="verificationBadge" style="display: none;">
+                <i class="fas fa-check-circle"></i> Verified Student
+            </div>
+            <p class="profile-stats">
+                <span id="completedCount">0</span> tasks completed • ⭐ <span id="ratingDisplay">0</span>
+            </p>
+        </div>
+        
+        <!-- Email Verification Section -->
+        <div class="profile-section" id="verificationSection">
+            <h4>Email Verification</h4>
+            <div id="verificationStatus" class="verification-status">
+                <i class="fas fa-exclamation-triangle"></i> Not verified
+            </div>
+            <div class="verification-input-group" id="verificationInputGroup">
+                <input type="text" id="verificationName" placeholder="Full Name" class="verification-input">
+                <input type="email" id="verificationEmail" placeholder="name@kuhes.ac.mw" class="verification-input">
+                <button id="sendVerificationBtn" class="verification-btn">Send Code</button>
+            </div>
+            <div class="verification-code-group" id="verificationCodeGroup" style="display: none;">
+                <input type="text" id="verificationCode" placeholder="Enter 6-digit code" class="verification-input">
+                <button id="verifyCodeBtn" class="verification-btn">Verify</button>
+            </div>
+            
+            <!-- Add after verification-code-group -->
+            <div class="verification-options" style="margin-top: 1rem;">
+                <button id="showBackupLoginBtn" class="backup-login-btn">
+                    <i class="fas fa-key"></i> Use backup code instead
+                </button>
+            </div>
+
+            <div id="backupLoginSection" class="backup-login-section" style="display: none; margin-top: 1rem;">
+                <div class="verification-input-group" style="flex-direction: column; gap: 0.5rem;">
+                    <input type="email" id="backupLoginEmail" placeholder="yourname@kuhes.ac.mw" class="verification-input">
+                    <input type="text" id="backupLoginCode" placeholder="Backup code (XXXX XXXX)" class="verification-input">
+                    <button id="verifyBackupBtn" class="verification-btn">Verify with Code</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Backup Code Section - Shows after verification -->
+        <div class="profile-section" id="backupCodeSection" style="display: none;">
+            <h4>🔐 Your Backup Code</h4>
+            <div class="backup-code-container">
+                <div class="backup-code-label">Use this code to verify on other devices:</div>
+                <div class="backup-code-display" id="backupCodeDisplay"></div>
+                <div class="backup-code-actions">
+                    <button id="copyBackupCodeBtn" class="backup-copy-btn">
+                        <i class="fas fa-copy"></i> Copy Code
+                    </button>
+                    <button id="downloadBackupCodeBtn" class="backup-download-btn">
+                        <i class="fas fa-download"></i> Save as Image
+                    </button>
+                </div>
+                <div class="backup-code-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Save this code! You'll need it to verify on other devices without email.
+                </div>
+            </div>
+        </div>
+        
+        <!-- Location Settings -->
+        <div class="profile-section">
+            <h4>Location Settings</h4>
+            <div class="location-status-card">
+                <div class="location-status-row">
+                    <div class="location-status-info">
+                        <div class="location-dot-status" id="locationDotStatus"></div>
+                        <div>
+                            <div class="location-status-label">Location Services</div>
+                            <div class="location-status-detail" id="locationStatusText">Not enabled</div>
+                        </div>
+                    </div>
+                    <button id="enableLocationProfileBtn" class="location-action-btn">Enable</button>
+                </div>
+                <div class="location-coords" id="locationCoords" style="display: none;">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span id="coordDisplay"></span>
+                </div>
+                <div class="location-help">
+                    <button id="retryLocationBtn" class="location-help-btn">
+                        <i class="fas fa-sync-alt"></i> Retry Location
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Manual Location -->
+        <div class="profile-section">
+            <h4>Manual Location (GPS not working?)</h4>
+            <div class="manual-location">
+                <div class="manual-location-inputs">
+                    <input type="text" id="manualLat" placeholder="Latitude" class="manual-input">
+                    <input type="text" id="manualLon" placeholder="Longitude" class="manual-input">
+                    <button id="setManualLocationBtn" class="manual-set-btn">Set</button>
+                </div>
+                <div class="manual-location-note">Tip: Find coordinates on Google Maps</div>
+            </div>
+        </div>
+        
+        <!-- App Settings -->
+        <div class="profile-section">
+            <h4>App Settings</h4>
+            <div class="setting-item">
+                <label>
+                    <input type="checkbox" id="whatsappIntegrationCheckbox"> Enable WhatsApp integration
+                </label>
+            </div>
+            <div class="setting-item">
+                <label>
+                    <input type="checkbox" id="autoLocationCheckbox"> Auto-share location with tasks
+                </label>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Location Banner -->
+<div id="locationBanner" class="location-banner" style="display: none;">
+    <div class="location-banner-content">
+        <i class="fas fa-location-dot"></i>
+        <div class="location-banner-text">
+            <strong>Enable Location</strong>
+            <span>See distances and nearby tasks</span>
+        </div>
+    </div>
+    <div class="location-banner-actions">
+        <button id="dismissBannerBtn" class="location-banner-dismiss"><i class="fas fa-times"></i></button>
+        <button id="enableLocationBtn" class="location-banner-btn">Enable</button>
+    </div>
+</div>
+
+<!-- Post Task Modal -->
+<div class="modal" id="postModal">
+    <div class="modal-overlay"></div>
+    <div class="modal-container">
+        <div class="modal-header">
+            <h2>Post a Task</h2>
+            <button class="modal-close" id="closeModal"><i class="fas fa-times"></i></button>
+        </div>
+        <form id="postTaskForm">
+            <div class="form-group">
+                <label>Task Type</label>
+                <div class="task-type-selector">
+                    <button type="button" class="type-select-btn active" data-type="help_me">
+                        <i class="fas fa-hand-paper"></i> Help Me
+                    </button>
+                    <button type="button" class="type-select-btn" data-type="send_me">
+                        <i class="fas fa-car"></i> Send Me
+                    </button>
+                    <button type="button" class="type-select-btn" data-type="deliver">
+                        <i class="fas fa-box"></i> Deliver
+                    </button>
+                    <button type="button" class="type-select-btn" data-type="group_buy">
+                        <i class="fas fa-users"></i> Group Buy
+                    </button>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>Title</label>
+                <input type="text" id="taskTitle" placeholder="e.g., Buy airtime..." required>
+            </div>
+            
+            <div class="form-group">
+                <label>Description</label>
+                <textarea id="taskDescription" rows="3" placeholder="Add details..."></textarea>
+            </div>
+            
+            <div id="helpMeFields" class="type-fields">
+                <div class="form-group">
+                    <label>Payment (MK) - Leave empty for negotiable</label>
+                    <input type="number" id="taskPayment" placeholder="200">
+                </div>
+            </div>
+            
+            <div id="sendMeFields" class="type-fields" style="display: none;">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>From</label>
+                        <input type="text" id="departureLocation" placeholder="e.g., Campus">
+                    </div>
+                    <div class="form-group">
+                        <label>To</label>
+                        <input type="text" id="destinationLocation" placeholder="e.g., Limbe">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Departure Time</label>
+                        <input type="datetime-local" id="departureTime">
+                    </div>
+                    <div class="form-group">
+                        <label>Available Seats</label>
+                        <input type="number" id="availableSeats" value="1" min="1" max="10">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Suggested Contribution (MK) - Optional</label>
+                    <input type="number" id="taskPaymentSend" placeholder="e.g., 500">
+                </div>
+            </div>
+            
+            <div id="deliverFields" class="type-fields" style="display: none;">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Pickup Location</label>
+                        <input type="text" id="pickupLocation" placeholder="Where to pick up from">
+                    </div>
+                    <div class="form-group">
+                        <label>Delivery Location</label>
+                        <input type="text" id="deliveryLocation" placeholder="Where to deliver to">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Delivery Fee (MK)</label>
+                    <input type="number" id="deliveryFee" placeholder="e.g., 1000">
+                </div>
+            </div>
+            
+            <div id="groupBuyFields" class="type-fields" style="display: none;">
+                <div class="form-group">
+                    <label>Item / Product</label>
+                    <input type="text" id="productName" placeholder="What are you ordering?">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Price per person (MK)</label>
+                        <input type="number" id="pricePerPerson" placeholder="e.g., 5000">
+                    </div>
+                    <div class="form-group">
+                        <label>Slots Available</label>
+                        <input type="number" id="groupSlots" value="2" min="1" max="20">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>Location</label>
+                <select id="taskLocation">
+                    <option>Campus</option>
+                    <option>Library</option>
+                    <option>Hostel</option>
+                    <option>Cafeteria</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label>When?</label>
+                <div class="urgency-buttons">
+                    <button type="button" class="urgency-btn" data-urgency="Now">Now</button>
+                    <button type="button" class="urgency-btn" data-urgency="Today">Today</button>
+                    <button type="button" class="urgency-btn active" data-urgency="Anytime">Anytime</button>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>WhatsApp Number (for contact)</label>
+                <input type="tel" id="userPhone" placeholder="+265 XXX XXX">
+            </div>
+            
+            <div class="form-group checkbox-group">
+                <label>
+                    <input type="checkbox" id="shareLocationCheckbox"> Share my location with this task
+                </label>
+            </div>
+            
+            <button type="submit" class="submit-task-btn">Post Task <i class="fas fa-arrow-right"></i></button>
+        </form>
+    </div>
+</div>
+
+<!-- Task Detail Modal -->
+<div class="modal" id="taskModal">
+    <div class="modal-overlay"></div>
+    <div class="modal-container">
+        <div class="modal-header">
+            <h2 id="modalTaskTitle">Task Title</h2>
+            <button class="modal-close" id="closeTaskModal"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="task-detail-content">
+            <div class="task-type-badge" id="taskTypeBadge"></div>
+            
+            <div class="task-stats">
+                <div class="stat-item"><i class="fas fa-money-bill-wave"></i><span id="modalPayment">MK 0</span></div>
+                <div class="stat-item"><i class="fas fa-location-dot"></i><span id="modalLocation">Location</span></div>
+                <div class="stat-item"><i class="fas fa-hourglass-half"></i><span id="modalUrgency">Urgency</span></div>
+            </div>
+            
+            <div id="modalSendMeInfo" class="sendme-info" style="display: none;">
+                <div class="info-row"><i class="fas fa-map-marker-alt"></i> From: <span id="modalDeparture"></span> → To: <span id="modalDestination"></span></div>
+                <div class="info-row"><i class="fas fa-clock"></i> Departure: <span id="modalDepartureTime"></span></div>
+                <div class="info-row"><i class="fas fa-chair"></i> Seats: <span id="modalSeats"></span></div>
+            </div>
+            
+            <div id="modalDistanceContainer" class="distance-container" style="display: none;">
+                <i class="fas fa-road"></i> <span id="modalDistance"></span> away
+            </div>
+            
+            <div class="task-description">
+                <h3>Description</h3>
+                <p id="modalDescription">No description.</p>
+            </div>
+            
+            <div class="task-meta">
+                <small>Posted <span id="modalTime"></span> by <span id="modalPoster"></span></small>
+                <div id="candidateInfo" class="candidate-info" style="display: none;">
+                    <small><span id="candidateCount"></span> people have applied</small>
+                </div>
+            </div>
+            
+            <div class="action-buttons" id="taskActionButtons"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Candidates Modal -->
+<div class="modal" id="candidatesModal">
+    <div class="modal-overlay"></div>
+    <div class="modal-container candidates-modal">
+        <div class="modal-header">
+            <h2>Applicants for this Task</h2>
+            <button class="modal-close" id="closeCandidatesModal"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="candidates-list" id="candidatesList">
+            <div class="loading">Loading applicants...</div>
+        </div>
+    </div>
+</div>
+
+<!-- Confirmation Modal -->
+<div class="modal" id="confirmModal">
+    <div class="modal-overlay"></div>
+    <div class="modal-container confirm-modal">
+        <div class="modal-header">
+            <h2><i class="fas fa-check-circle" style="color: #22C55E;"></i> <span id="confirmTitle">Applied!</span></h2>
+            <button class="modal-close" id="closeConfirmModalBtn"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="confirm-content">
+            <p id="confirmMessage">You have applied for this task.</p>
+            <div id="candidateStatusInfo" class="candidate-status-info" style="display: none;">
+                <div class="status-badge-info">You are candidate <span id="userCandidatePosition"></span> of <span id="totalCandidates"></span></div>
+                <div class="waiting-message">The poster will review all applicants and select someone. You'll be notified if chosen.</div>
+            </div>
+            <div id="whatsappInfo" class="whatsapp-info" style="display: none;">
+                <i class="fab fa-whatsapp"></i>
+                <span>Contact the poster via WhatsApp</span>
+            </div>
+            <div class="confirm-buttons">
+                <button id="closeConfirmBtn" class="confirm-btn secondary">Close</button>
+                <button id="openWhatsAppBtn" class="confirm-btn primary" style="display: none;">
+                    <i class="fab fa-whatsapp"></i> Open WhatsApp
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Notifications Panel -->
+<div class="notifications-panel" id="notificationsPanel" style="display: none;">
+    <div class="notifications-header">
+        <h3>Notifications</h3>
+        <button id="closeNotificationsBtn"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="notifications-list" id="notificationsList">
+        <div class="no-notifications">No notifications</div>
+    </div>
+</div>
+
+<!-- Toast Notification -->
+<div class="toast-notification" id="toast">
+    <i class="fas fa-check-circle"></i>
+    <span id="toastMessage">Success!</span>
+</div>
+{% endblock %}
