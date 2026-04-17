@@ -1,27 +1,22 @@
-# app/__init__.py (FIXED)
-from flask import Flask, render_template
+# app/__init__.py
+from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 import os
 
 db = SQLAlchemy()
 
-def create_app(config_class=None):
+def create_app():
     app = Flask(__name__, 
                 static_folder='static',
                 template_folder='templates')
     
-    if config_class is None:
-        from config import Config
-        app.config.from_object(Config)
-    else:
-        app.config.from_object(config_class)
+    app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-key-change-in-production')
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///sendme.db')
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    app.config['SESSION_COOKIE_SECURE'] = True
+    app.config['SESSION_COOKIE_HTTPONLY'] = True
     
     db.init_app(app)
-    
-    # Register error handlers
-    @app.errorhandler(404)
-    def not_found(error):
-        return render_template('index.html'), 200  # Return SPA style
     
     from app.routes import main, tasks, auth
     app.register_blueprint(main.bp)
